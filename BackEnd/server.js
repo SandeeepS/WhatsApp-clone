@@ -1,12 +1,45 @@
 //importing
 import express from "express";
 import mongoose from "mongoose";
+import Messages from "./dbMessages.js";
+import Pusher from "pusher";
 
 //app config
 const app = express();
 const port = process.env.PORT || 9000;
 
+const pusher = new Pusher({
+  appId: "1848749",
+  key: "5dad1c29f09dcee0dbf6",
+  secret: "98e498acd01d466f133b",
+  cluster: "ap2",
+  useTLS: true,
+});
+
+const db = mongoose.connection;
+db.once("open", () => {
+  console.log("DB is connected");
+
+  const msgCollection = db.collection("messagecontents");
+  const changeStream = msgCollection.watch();
+
+  changeStream.on("change", (change) => {
+    console.log(change);
+
+    if (change.operationType === "insert") {
+      const messageDetails = change.fullDocument;
+      pusher.trigger("messages", "inserted", {
+        name: messageDetails.user,
+        message: messageDetails.message,
+      });
+    } else {
+      console.log("Error triggered Pusher");
+    }
+  });
+});
+
 //middleware
+app.use(express.json());
 
 //DB congifgure
 const connection_url =
@@ -18,6 +51,30 @@ mongoose.connect(connection_url);
 app.get("/", (req, res) => {
   res.status(200);
   res.send("hello world");
+});
+
+//posting the messages
+app.post("/messages/new", (req, res) => {
+  const dbMessage = req.body;
+
+  Messages.create(dbMessage)
+    .then((result) => {
+      res.status(201).send(result);
+    })
+    .catch((err) => {
+      res.status(500).send(err);
+    });
+});
+
+//getting all the messages
+app.get("/messages/sync", (req, res) => {
+  Messages.find()
+    .then((result) => {
+      res.status(200).send(result);
+    })
+    .catch((err) => {
+      res.status(500).send(err);
+    });
 });
 
 //listen
