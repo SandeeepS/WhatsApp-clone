@@ -3,6 +3,7 @@ import express from "express";
 import mongoose from "mongoose";
 import Messages from "./dbMessages.js";
 import Pusher from "pusher";
+import cors from "cors";
 
 //app config
 const app = express();
@@ -40,11 +41,8 @@ db.once("open", () => {
 
 //middleware
 app.use(express.json());
-app.use((req,res,next) => {
-  res.setHeader("Access-Control-Allow-Orgin","*");
-  res.setHeader("Access-Control-Allow-Headers","*");
-  next();
-})
+app.use(cors())
+
 
 //DB congifgure
 const connection_url =
