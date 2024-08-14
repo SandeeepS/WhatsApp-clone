@@ -40,6 +40,11 @@ db.once("open", () => {
 
 //middleware
 app.use(express.json());
+app.use((req,res,next) => {
+  res.setHeader("Access-Control-Allow-Orgin","*");
+  res.setHeader("Access-Control-Allow-Headers","*");
+  next();
+})
 
 //DB congifgure
 const connection_url =
