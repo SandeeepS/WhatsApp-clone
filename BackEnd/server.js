@@ -9,6 +9,8 @@ import cors from "cors";
 const app = express();
 const port = process.env.PORT || 9000;
 
+
+//pusher for real time updation
 const pusher = new Pusher({
   appId: "1848749",
   key: "5dad1c29f09dcee0dbf6",
